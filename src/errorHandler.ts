@@ -4,7 +4,7 @@
  */
 
 export { addErrorHandler, removeErrorHandler } from 'single-spa';
-
+// 捕获错误
 export function addGlobalUncaughtErrorHandler(errorHandler: OnErrorEventHandlerNonNull): void {
   window.addEventListener('error', errorHandler);
   window.addEventListener('unhandledrejection', errorHandler);

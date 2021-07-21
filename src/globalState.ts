@@ -5,7 +5,7 @@
 
 import { cloneDeep } from 'lodash';
 import type { OnGlobalStateChangeCallback, MicroAppStateActions } from './interfaces';
-
+// 保存全局状态
 let globalState: Record<string, any> = {};
 
 const deps: Record<string, OnGlobalStateChangeCallback> = {};
@@ -20,6 +20,7 @@ function emitGlobal(state: Record<string, any>, prevState: Record<string, any>) 
 }
 
 export function initGlobalState(state: Record<string, any> = {}) {
+  debugger
   if (state === globalState) {
     console.warn('[qiankun] state has not changed！');
   } else {
@@ -82,6 +83,7 @@ export function getMicroAppStateActions(id: string, isMaster?: boolean): MicroAp
       const prevGlobalState = cloneDeep(globalState);
       globalState = cloneDeep(
         Object.keys(state).reduce((_globalState, changeKey) => {
+          // 只有之前声明的属性改变了才会触发change
           if (isMaster || _globalState.hasOwnProperty(changeKey)) {
             changeKeys.push(changeKey);
             return Object.assign(_globalState, { [changeKey]: state[changeKey] });

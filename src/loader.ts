@@ -118,6 +118,7 @@ function getAppWrapperGetter(
   elementGetter: () => HTMLElement | null,
 ) {
   return () => {
+    debugger
     if (useLegacyRender) {
       if (strictStyleIsolation) throw new QiankunError('strictStyleIsolation can not be used with legacy render!');
       if (scopedCSS) throw new QiankunError('experimentalStyleIsolation can not be used with legacy render!');
@@ -154,6 +155,7 @@ type ElementRender = (
  */
 function getRender(appName: string, appContent: string, legacyRender?: HTMLContentRender) {
   const render: ElementRender = ({ element, loading, container }, phase) => {
+    debugger
     if (legacyRender) {
       if (process.env.NODE_ENV === 'development') {
         console.warn(
@@ -241,11 +243,13 @@ let prevAppUnmountedDeferred: Deferred<void>;
 
 export type ParcelConfigObjectGetter = (remountContainer?: string | HTMLElement) => ParcelConfigObject;
 
+// 在匹配到子应用时执行
 export async function loadApp<T extends ObjectType>(
   app: LoadableApp<T>,
   configuration: FrameworkConfiguration = {},
   lifeCycles?: FrameworkLifeCycles<T>,
 ): Promise<ParcelConfigObjectGetter> {
+  debugger
   const { entry, name: appName } = app;
   const appInstanceId = `${appName}_${+new Date()}_${Math.floor(Math.random() * 1000)}`;
 
@@ -257,8 +261,11 @@ export async function loadApp<T extends ObjectType>(
   const { singular = false, sandbox = true, excludeAssetFilter, ...importEntryOpts } = configuration;
 
   // get the entry html content and script executor
+  // 1. 通过import-html-entry拉去子应用的资源
+  // 首先通过entry获得html文档
+  // 正则匹配得到js和css资源
   const { template, execScripts, assetPublicPath } = await importEntry(entry, importEntryOpts);
-
+  debugger
   // as single-spa load and bootstrap new app parallel with other apps unmounting
   // (see https://github.com/CanopyTax/single-spa/blob/master/src/navigation/reroute.js#L74)
   // we need wait to load the app until all apps are finishing unmount in singular mode
@@ -266,6 +273,7 @@ export async function loadApp<T extends ObjectType>(
     await (prevAppUnmountedDeferred && prevAppUnmountedDeferred.promise);
   }
 
+  // 用一个div把子应用的html包裹起来
   const appContent = getDefaultTplWrapper(appInstanceId, appName)(template);
 
   const strictStyleIsolation = typeof sandbox === 'object' && !!sandbox.strictStyleIsolation;
@@ -326,7 +334,11 @@ export async function loadApp<T extends ObjectType>(
   await execHooksChain(toArray(beforeLoad), app, global);
 
   // get the lifecycle hooks from module exports
+  // 执行script
+  debugger
   const scriptExports: any = await execScripts(global, sandbox && !useLooseSandbox);
+  debugger
+  // 得到执行后的lifecycles
   const { bootstrap, mount, unmount, update } = getLifecyclesFromExports(
     scriptExports,
     appName,

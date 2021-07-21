@@ -35,10 +35,15 @@ export function createSandboxContainer(
   useLooseSandbox?: boolean,
   excludeAssetFilter?: (url: string) => boolean,
 ) {
+  debugger
   let sandbox: SandBox;
+  // 支持Proxy时
   if (window.Proxy) {
+    // LegacySandbox 老的实现
+    // ProxySandbox 新的实现
     sandbox = useLooseSandbox ? new LegacySandbox(appName) : new ProxySandbox(appName);
   } else {
+    // 快照实现
     sandbox = new SnapshotSandbox(appName);
   }
 

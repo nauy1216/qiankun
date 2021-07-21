@@ -71,6 +71,7 @@ function prefetch(entry: Entry, opts?: ImportEntryOpts): void {
   }
 
   requestIdleCallback(async () => {
+    debugger
     const { getExternalScripts, getExternalStyleSheets } = await importEntry(entry, opts);
     requestIdleCallback(getExternalStyleSheets);
     requestIdleCallback(getExternalScripts);
@@ -78,6 +79,8 @@ function prefetch(entry: Entry, opts?: ImportEntryOpts): void {
 }
 
 function prefetchAfterFirstMounted(apps: AppMetadata[], opts?: ImportEntryOpts): void {
+  // 监听single-spa:first-mount事件，
+  // 使用prefetch对未加载的子应用进行加载
   window.addEventListener('single-spa:first-mount', function listener() {
     const notLoadedApps = apps.filter((app) => getAppStatus(app.name) === NOT_LOADED);
 
@@ -119,6 +122,7 @@ export function doPrefetchStrategy(
   } else {
     switch (prefetchStrategy) {
       case true:
+        // 在第一个子应用mount之后，预加载其他的应用
         prefetchAfterFirstMounted(apps, importEntryOpts);
         break;
 

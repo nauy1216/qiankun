@@ -19,10 +19,12 @@ const defaultUrlRerouteOnly = true;
 const frameworkStartedDefer = new Deferred<void>();
 
 export function registerMicroApps<T extends ObjectType>(
-  apps: Array<RegistrableApp<T>>,
-  lifeCycles?: FrameworkLifeCycles<T>,
+  apps: Array<RegistrableApp<T>>, // 需要注册的子应用
+  lifeCycles?: FrameworkLifeCycles<T>, // qiankun自己的声明周期
 ) {
+  debugger
   // Each app only needs to be registered once
+  // 找到未注册的应用
   const unregisteredApps = apps.filter((app) => !microApps.some((registeredApp) => registeredApp.name === app.name));
 
   microApps = [...microApps, ...unregisteredApps];
@@ -33,13 +35,19 @@ export function registerMicroApps<T extends ObjectType>(
     registerApplication({
       name,
       app: async () => {
+        debugger
+        // 1.执行加载动画
         loader(true);
         await frameworkStartedDefer.promise;
 
+        // 2.加载子应用的资源
         const { mount, ...otherMicroAppConfigs } = (
           await loadApp({ name, props, ...appConfig }, frameworkConfiguration, lifeCycles)
         )();
+        debugger
 
+        // 3.返回single-spa需要的应用生命周期，由single-spa去调用
+        // qiankun只是负责拉取资源获得子应用的生命周期方法
         return {
           mount: [async () => loader(true), ...toArray(mount), async () => loader(false)],
           ...otherMicroAppConfigs,
@@ -58,6 +66,7 @@ export function loadMicroApp<T extends ObjectType>(
   configuration?: FrameworkConfiguration,
   lifeCycles?: FrameworkLifeCycles<T>,
 ): MicroApp {
+  debugger
   const { props, name } = app;
 
   const getContainerXpath = (container: string | HTMLElement): string | void => {
@@ -127,6 +136,7 @@ export function loadMicroApp<T extends ObjectType>(
 }
 
 export function start(opts: FrameworkConfiguration = {}) {
+  debugger
   frameworkConfiguration = { prefetch: true, singular: true, sandbox: true, ...opts };
   const {
     prefetch,
@@ -136,6 +146,7 @@ export function start(opts: FrameworkConfiguration = {}) {
     ...importEntryOpts
   } = frameworkConfiguration;
 
+  // 预加载
   if (prefetch) {
     doPrefetchStrategy(microApps, prefetch, importEntryOpts);
   }
@@ -152,6 +163,8 @@ export function start(opts: FrameworkConfiguration = {}) {
     }
   }
 
+  // 调用single-spa的start方法
+  // single内部将会运行当前匹配的应用，也就是执行registerApplication参数的app方法
   startSingleSpa({ urlRerouteOnly });
   started = true;
 

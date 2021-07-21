@@ -9,7 +9,9 @@ if (process.env.NODE_ENV === 'development') {
   console.time(firstMountLogLabel);
 }
 
+// 设置默认启动的子应用
 export function setDefaultMountApp(defaultAppLink: string) {
+  debugger
   // can not use addEventListener once option for ie support
   window.addEventListener('single-spa:no-app-change', function listener() {
     const mountedApps = getMountedApps();
@@ -28,6 +30,7 @@ export function runDefaultMountEffects(defaultAppLink: string) {
   setDefaultMountApp(defaultAppLink);
 }
 
+// 当第一个子应用mount时执行
 export function runAfterFirstMounted(effect: () => void) {
   // can not use addEventListener once option for ie support
   window.addEventListener('single-spa:first-mount', function listener() {

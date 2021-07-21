@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "esnext",
+    "sourceMap": false,
+    "target":"esNext",
+    "module": "esNext",
     "lib": ["es2018", "dom"],
     "declaration": true,
-    "outDir": "./esm",
+    "outDir": "./es",
     "rootDir": "./src",
     "importHelpers": true,
     "downlevelIteration": true,
@@ -26,5 +27,5 @@
     "esModuleInterop": true,
     "experimentalDecorators": true
   },
-  "exclude": ["node_modules", "examples"]
+  "exclude": ["node_modules", "examples", "es"]
 }

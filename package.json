@@ -44,7 +44,8 @@
     "docs:dev": "dumi dev",
     "docs:build": "dumi build",
     "ci": "yarn lint && yarn build && yarn test",
-    "test": "cross-env NODE_ENV=test jest"
+    "test": "cross-env NODE_ENV=test jest",
+    "tsc": "tsc -w"
   },
   "repository": {
     "type": "git",
@@ -66,7 +67,7 @@
     "import-html-entry": "^1.9.0",
     "lodash": "^4.17.11",
     "single-spa": "^5.9.2",
-    "tslib": "^1.10.0"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",
@@ -94,17 +95,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn test"
+      
     }
-  },
-  "lint-staged": {
-    "**/*.{js,ts,json,css,md}": [
-      "prettier -w"
-    ],
-    "**/*.{js,ts}": [
-      "yarn lint:fix"
-    ]
   },
   "jest": {
     "moduleFileExtensions": [

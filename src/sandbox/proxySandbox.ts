@@ -74,10 +74,12 @@ function createFakeWindow(global: Window) {
    */
   Object.getOwnPropertyNames(global)
     .filter((p) => {
+      // 过滤掉不能修改的属性
       const descriptor = Object.getOwnPropertyDescriptor(global, p);
       return !descriptor?.configurable;
     })
     .forEach((p) => {
+      // 获取属性描述对象
       const descriptor = Object.getOwnPropertyDescriptor(global, p);
       if (descriptor) {
         const hasGetter = Object.prototype.hasOwnProperty.call(descriptor, 'get');
@@ -106,6 +108,8 @@ function createFakeWindow(global: Window) {
           }
         }
 
+
+        // 将有getter的属性保存起来
         if (hasGetter) propertiesWithGetter.set(p, true);
 
         // freeze the descriptor to avoid being modified by zone.js
@@ -169,6 +173,7 @@ export default class ProxySandbox implements SandBox {
     const { updatedValueSet } = this;
 
     const rawWindow = window;
+    // 每一个沙箱都会创建一个fakeWindow对象
     const { fakeWindow, propertiesWithGetter } = createFakeWindow(rawWindow);
 
     const descriptorTargetMap = new Map<PropertyKey, SymbolTarget>();
@@ -176,8 +181,10 @@ export default class ProxySandbox implements SandBox {
 
     const proxy = new Proxy(fakeWindow, {
       set: (target: FakeWindow, p: PropertyKey, value: any): boolean => {
+        // 沙箱正在运行
         if (this.sandboxRunning) {
           // We must kept its description while the property existed in rawWindow before
+          // 如果修改的属性fakeWindow不存在， window存在
           if (!target.hasOwnProperty(p) && rawWindow.hasOwnProperty(p)) {
             const descriptor = Object.getOwnPropertyDescriptor(rawWindow, p);
             const { writable, configurable, enumerable } = descriptor!;
@@ -194,11 +201,13 @@ export default class ProxySandbox implements SandBox {
             target[p] = value;
           }
 
+          // variableWhiteList包含的属性将会同步修改到window上
           if (variableWhiteList.indexOf(p) !== -1) {
             // @ts-ignore
             rawWindow[p] = value;
           }
 
+          // 将修改的属性保存起来
           updatedValueSet.add(p);
 
           this.latestSetProp = p;
@@ -234,6 +243,7 @@ export default class ProxySandbox implements SandBox {
           (process.env.NODE_ENV === 'test' && (p === 'mockTop' || p === 'mockSafariTop'))
         ) {
           // if your master app in an iframe context, allow these props escape the sandbox
+          // 顶层window
           if (rawWindow === rawWindow.parent) {
             return proxy;
           }
